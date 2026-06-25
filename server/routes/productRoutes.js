@@ -1,0 +1,11 @@
+const express = require('express');
+const router = express.Router();
+const c = require('../controllers/productController');
+const { protect } = require('../middleware/authMiddleware');
+const { uploadProductImage } = require('../middleware/uploadMiddleware');
+router.get('/', protect('admin','sales'), c.getAll);
+router.get('/:id', protect('admin','sales'), c.getById);
+router.post('/', protect('admin'), uploadProductImage.single('gambar'), c.create);
+router.put('/:id', protect('admin'), uploadProductImage.single('gambar'), c.update);
+router.delete('/:id', protect('admin'), c.remove);
+module.exports = router;

@@ -1,0 +1,4 @@
+const pool = require('../config/db');
+exports.getByOrder = async (req, res) => { const [rows] = await pool.query('SELECT * FROM tracking_order WHERE id_pesanan=? ORDER BY tanggal_update ASC', [req.params.id_pesanan]); res.json(rows); };
+exports.create = async (req, res) => { const { id_pesanan, status, keterangan } = req.body; const [result] = await pool.query('INSERT INTO tracking_order (id_pesanan,status,keterangan) VALUES (?,?,?)', [id_pesanan,status,keterangan || '']); await pool.query('UPDATE pesanan SET status_pesanan=? WHERE id_pesanan=?', [status,id_pesanan]); res.status(201).json({ message: 'Tracking berhasil ditambahkan.', id_tracking: result.insertId }); };
+exports.update = async (req, res) => { const { status, keterangan } = req.body; await pool.query('UPDATE tracking_order SET status=?, keterangan=? WHERE id_tracking=?', [status,keterangan || '',req.params.id]); res.json({ message: 'Tracking berhasil diperbarui.' }); };
