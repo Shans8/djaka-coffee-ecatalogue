@@ -1,10 +1,14 @@
-import bcrypt from 'bcryptjs';
-import pool from './config/db.js';
+const bcrypt = require('bcryptjs');
+const pool = require('./config/db');
 
 async function ensureSeedData() {
   await pool.query(`
-    INSERT IGNORE INTO roles (id_role, nama_role)
-    VALUES (1, 'admin'), (2, 'sales')
+    INSERT INTO roles (id_role, nama_role)
+    VALUES 
+      (1, 'admin'),
+      (2, 'sales')
+    ON DUPLICATE KEY UPDATE
+      nama_role = VALUES(nama_role)
   `);
 
   const accounts = [
@@ -32,41 +36,45 @@ async function ensureSeedData() {
       [account.role]
     );
 
-    const [existing] = await pool.query(
-      'SELECT id_user FROM users WHERE email = ?',
-      [account.email]
+    const hashedPassword = await bcrypt.hash(account.password, 10);
+
+    await pool.query(
+      `
+      INSERT INTO users 
+      (id_role, nama, email, password, no_hp, alamat, status)
+      VALUES (?, ?, ?, ?, ?, ?, 'aktif')
+      ON DUPLICATE KEY UPDATE
+        id_role = VALUES(id_role),
+        nama = VALUES(nama),
+        password = VALUES(password),
+        no_hp = VALUES(no_hp),
+        alamat = VALUES(alamat),
+        status = 'aktif'
+      `,
+      [
+        role.id_role,
+        account.nama,
+        account.email,
+        hashedPassword,
+        account.no_hp,
+        account.alamat
+      ]
     );
-
-    if (!existing.length) {
-      const hashedPassword = await bcrypt.hash(account.password, 10);
-
-      await pool.query(
-        `INSERT INTO users
-         (id_role, nama, email, password, no_hp, alamat, status)
-         VALUES (?, ?, ?, ?, ?, ?, 'aktif')`,
-        [
-          role.id_role,
-          account.nama,
-          account.email,
-          hashedPassword,
-          account.no_hp,
-          account.alamat
-        ]
-      );
-    }
   }
+
+  console.log('Akun dummy admin dan sales berhasil dibuat/diperbarui.');
 }
 
-export default ensureSeedData;
-
-if (process.argv[1] && process.argv[1].endsWith('seed.js')) {
+if (require.main === module) {
   ensureSeedData()
     .then(() => {
-      console.log('Seed akun admin dan sales berhasil dibuat/diperiksa.');
+      console.log('Seed selesai.');
       process.exit(0);
     })
     .catch((err) => {
-      console.error(err);
+      console.error('Seed gagal:', err);
       process.exit(1);
     });
 }
+
+module.exports = ensureSeedData;
