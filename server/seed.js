@@ -40,7 +40,7 @@ async function ensureSeedData() {
 
     await pool.query(
       `
-      INSERT INTO users 
+      INSERT INTO users
       (id_role, nama, email, password, no_hp, alamat, status)
       VALUES (?, ?, ?, ?, ?, ?, 'aktif')
       ON DUPLICATE KEY UPDATE
