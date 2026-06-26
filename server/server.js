@@ -13,13 +13,13 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Folder upload gambar
+// Folder gambar produk
 app.use(
   '/uploads',
   express.static(path.join(__dirname, 'uploads'))
 );
 
-// Pemeriksaan API
+// Tes API
 app.get('/api/health', (req, res) => {
   res.json({
     message: 'API Djaka Coffee aktif.'
@@ -38,12 +38,12 @@ app.use('/api/import', require('./routes/importRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 
-// Menampilkan hasil build React
+// Menampilkan frontend React dari folder dist
 app.use(
   express.static(path.join(__dirname, '../dist'))
 );
 
-// Semua halaman React diarahkan ke index.html
+// Semua URL halaman React diarahkan ke index.html
 app.get(/.*/, (req, res) => {
   res.sendFile(
     path.join(__dirname, '../dist/index.html')
@@ -59,10 +59,12 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Buat akun dummy, kemudian jalankan server
+// Periksa dan buat akun dummy sebelum server dijalankan
 ensureSeedData()
   .then(() => {
-    console.log('Seed akun admin dan sales berhasil diperiksa.');
+    console.log(
+      'Seed akun admin dan sales berhasil diperiksa.'
+    );
 
     app.listen(PORT, () => {
       console.log(`Server berjalan di port ${PORT}`);
